@@ -1,0 +1,48 @@
+
+type Comment{
+  _id: String!
+  text: String!
+  post: Medicine!
+}
+
+type Post{
+  _id: String!
+  image: String!
+  text: String!
+}
+
+type Medicine{
+  _id: String!
+  name: String!
+  description: String!
+  comments: [Comment]
+}
+
+type Query{
+  Posts: [Post]!
+  Medicines: [Medicine]!
+  medicine(_id: String!): Medicine!
+  post(_id: String!): Post!
+}
+
+input NewPost{
+  image: String!
+  text: String!
+}
+
+input NewComment{
+  text: String!
+  medicineId: String!
+}
+
+input NewMedicine{
+  _id: String!
+  name: String!
+  description: String!
+}
+
+type Mutation{
+  createPost(input: NewPost!): Post!
+  createComment(input: NewComment!): Comment!
+  createMedicine(input: NewMedicine!): Medicine
+}
