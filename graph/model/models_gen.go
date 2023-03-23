@@ -3,13 +3,13 @@
 package model
 
 type Comment struct {
-	ID   string    `json:"_id"`
-	Text string    `json:"text"`
-	Post *Medicine `json:"post"`
+	ID         int    `json:"_id"`
+	Text       string `json:"text"`
+	MedicineID int    `json:"medicine_id"`
 }
 
 type Medicine struct {
-	ID          string     `json:"_id"`
+	ID          int        `json:"_id"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Comments    []*Comment `json:"comments,omitempty"`
@@ -17,22 +17,23 @@ type Medicine struct {
 
 type NewComment struct {
 	Text       string `json:"text"`
-	MedicineID string `json:"medicineId"`
+	MedicineID int    `json:"medicineId"`
 }
 
 type NewMedicine struct {
-	ID          string `json:"_id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
 type NewPost struct {
-	Image string `json:"image"`
-	Text  string `json:"text"`
+	Image  string `json:"image"`
+	Text   string `json:"text"`
+	Header string `json:"header"`
 }
 
 type Post struct {
-	ID    string `json:"_id"`
-	Image string `json:"image"`
-	Text  string `json:"text"`
+	ID     int    `json:"_id"`
+	Image  string `json:"image"`
+	Text   string `json:"text"`
+	Header string `json:"header"`
 }

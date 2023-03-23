@@ -1,19 +1,21 @@
 
 type Comment{
-  _id: String!
+  _id: Int!
   text: String!
-  post: Medicine!
+  medicine_id: Int!
 }
 
 type Post{
-  _id: String!
+  _id: Int!
   image: String!
   text: String!
+  header: String!
 }
 
 type Medicine{
-  _id: String!
+  _id: Int!
   name: String!
+  rus_name: String!
   description: String!
   comments: [Comment]
 }
@@ -21,28 +23,31 @@ type Medicine{
 type Query{
   Posts: [Post]!
   Medicines: [Medicine]!
-  medicine(_id: String!): Medicine!
-  post(_id: String!): Post!
+  medicine(_id: Int!): Medicine!
+  post(_id: Int!): Post!
+  filter_medicine_eng(name: String!): [Medicine]!
+  filter_medicine_rus(name: String!): [Medicine]!
 }
 
 input NewPost{
   image: String!
   text: String!
+  header: String!
 }
 
 input NewComment{
   text: String!
-  medicineId: String!
+  medicineId: Int!
 }
 
 input NewMedicine{
-  _id: String!
   name: String!
+  rus_name: String!
   description: String!
 }
 
 type Mutation{
   createPost(input: NewPost!): Post!
   createComment(input: NewComment!): Comment!
-  createMedicine(input: NewMedicine!): Medicine
+  createMedicine(input: NewMedicine!): Medicine!
 }

@@ -46,9 +46,9 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Comment struct {
-		ID   func(childComplexity int) int
-		Post func(childComplexity int) int
-		Text func(childComplexity int) int
+		ID         func(childComplexity int) int
+		MedicineID func(childComplexity int) int
+		Text       func(childComplexity int) int
 	}
 
 	Medicine struct {
@@ -65,16 +65,18 @@ type ComplexityRoot struct {
 	}
 
 	Post struct {
-		ID    func(childComplexity int) int
-		Image func(childComplexity int) int
-		Text  func(childComplexity int) int
+		Header func(childComplexity int) int
+		ID     func(childComplexity int) int
+		Image  func(childComplexity int) int
+		Text   func(childComplexity int) int
 	}
 
 	Query struct {
-		Medicine  func(childComplexity int, id string) int
-		Medicines func(childComplexity int) int
-		Post      func(childComplexity int, id string) int
-		Posts     func(childComplexity int) int
+		FilterMedicine func(childComplexity int, name string) int
+		Medicine       func(childComplexity int, id int) int
+		Medicines      func(childComplexity int) int
+		Post           func(childComplexity int, id int) int
+		Posts          func(childComplexity int) int
 	}
 }
 
@@ -86,8 +88,9 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Posts(ctx context.Context) ([]*model.Post, error)
 	Medicines(ctx context.Context) ([]*model.Medicine, error)
-	Medicine(ctx context.Context, id string) (*model.Medicine, error)
-	Post(ctx context.Context, id string) (*model.Post, error)
+	Medicine(ctx context.Context, id int) (*model.Medicine, error)
+	Post(ctx context.Context, id int) (*model.Post, error)
+	FilterMedicine(ctx context.Context, name string) ([]*model.Medicine, error)
 }
 
 type executableSchema struct {
@@ -112,12 +115,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Comment.ID(childComplexity), true
 
-	case "Comment.post":
-		if e.complexity.Comment.Post == nil {
+	case "Comment.medicine_id":
+		if e.complexity.Comment.MedicineID == nil {
 			break
 		}
 
-		return e.complexity.Comment.Post(childComplexity), true
+		return e.complexity.Comment.MedicineID(childComplexity), true
 
 	case "Comment.text":
 		if e.complexity.Comment.Text == nil {
@@ -190,6 +193,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreatePost(childComplexity, args["input"].(model.NewPost)), true
 
+	case "Post.header":
+		if e.complexity.Post.Header == nil {
+			break
+		}
+
+		return e.complexity.Post.Header(childComplexity), true
+
 	case "Post._id":
 		if e.complexity.Post.ID == nil {
 			break
@@ -211,6 +221,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.Text(childComplexity), true
 
+	case "Query.filter_medicine":
+		if e.complexity.Query.FilterMedicine == nil {
+			break
+		}
+
+		args, err := ec.field_Query_filter_medicine_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FilterMedicine(childComplexity, args["name"].(string)), true
+
 	case "Query.medicine":
 		if e.complexity.Query.Medicine == nil {
 			break
@@ -221,7 +243,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Medicine(childComplexity, args["_id"].(string)), true
+		return e.complexity.Query.Medicine(childComplexity, args["_id"].(int)), true
 
 	case "Query.Medicines":
 		if e.complexity.Query.Medicines == nil {
@@ -240,7 +262,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Post(childComplexity, args["_id"].(string)), true
+		return e.complexity.Query.Post(childComplexity, args["_id"].(int)), true
 
 	case "Query.Posts":
 		if e.complexity.Query.Posts == nil {
@@ -399,13 +421,28 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_medicine_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_filter_medicine_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_medicine_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
 	if tmp, ok := rawArgs["_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -417,10 +454,10 @@ func (ec *executionContext) field_Query_medicine_args(ctx context.Context, rawAr
 func (ec *executionContext) field_Query_post_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -493,9 +530,9 @@ func (ec *executionContext) _Comment__id(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Comment__id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -505,7 +542,7 @@ func (ec *executionContext) fieldContext_Comment__id(ctx context.Context, field 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -555,8 +592,8 @@ func (ec *executionContext) fieldContext_Comment_text(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Comment_post(ctx context.Context, field graphql.CollectedField, obj *model.Comment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Comment_post(ctx, field)
+func (ec *executionContext) _Comment_medicine_id(ctx context.Context, field graphql.CollectedField, obj *model.Comment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Comment_medicine_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -569,7 +606,7 @@ func (ec *executionContext) _Comment_post(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Post, nil
+		return obj.MedicineID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -581,29 +618,19 @@ func (ec *executionContext) _Comment_post(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Medicine)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNMedicine2ᚖgdscᚗbackᚋgraphᚋmodelᚐMedicine(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Comment_post(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Comment_medicine_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Comment",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "_id":
-				return ec.fieldContext_Medicine__id(ctx, field)
-			case "name":
-				return ec.fieldContext_Medicine_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Medicine_description(ctx, field)
-			case "comments":
-				return ec.fieldContext_Medicine_comments(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Medicine", field.Name)
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -635,9 +662,9 @@ func (ec *executionContext) _Medicine__id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Medicine__id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -647,7 +674,7 @@ func (ec *executionContext) fieldContext_Medicine__id(ctx context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -781,8 +808,8 @@ func (ec *executionContext) fieldContext_Medicine_comments(ctx context.Context, 
 				return ec.fieldContext_Comment__id(ctx, field)
 			case "text":
 				return ec.fieldContext_Comment_text(ctx, field)
-			case "post":
-				return ec.fieldContext_Comment_post(ctx, field)
+			case "medicine_id":
+				return ec.fieldContext_Comment_medicine_id(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Comment", field.Name)
 		},
@@ -835,6 +862,8 @@ func (ec *executionContext) fieldContext_Mutation_createPost(ctx context.Context
 				return ec.fieldContext_Post_image(ctx, field)
 			case "text":
 				return ec.fieldContext_Post_text(ctx, field)
+			case "header":
+				return ec.fieldContext_Post_header(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Post", field.Name)
 		},
@@ -896,8 +925,8 @@ func (ec *executionContext) fieldContext_Mutation_createComment(ctx context.Cont
 				return ec.fieldContext_Comment__id(ctx, field)
 			case "text":
 				return ec.fieldContext_Comment_text(ctx, field)
-			case "post":
-				return ec.fieldContext_Comment_post(ctx, field)
+			case "medicine_id":
+				return ec.fieldContext_Comment_medicine_id(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Comment", field.Name)
 		},
@@ -937,11 +966,14 @@ func (ec *executionContext) _Mutation_createMedicine(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.Medicine)
 	fc.Result = res
-	return ec.marshalOMedicine2ᚖgdscᚗbackᚋgraphᚋmodelᚐMedicine(ctx, field.Selections, res)
+	return ec.marshalNMedicine2ᚖgdscᚗbackᚋgraphᚋmodelᚐMedicine(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createMedicine(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1004,9 +1036,9 @@ func (ec *executionContext) _Post__id(ctx context.Context, field graphql.Collect
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post__id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1016,7 +1048,7 @@ func (ec *executionContext) fieldContext_Post__id(ctx context.Context, field gra
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1110,6 +1142,50 @@ func (ec *executionContext) fieldContext_Post_text(ctx context.Context, field gr
 	return fc, nil
 }
 
+func (ec *executionContext) _Post_header(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Post_header(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Header, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Post_header(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Post",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_Posts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_Posts(ctx, field)
 	if err != nil {
@@ -1155,6 +1231,8 @@ func (ec *executionContext) fieldContext_Query_Posts(ctx context.Context, field 
 				return ec.fieldContext_Post_image(ctx, field)
 			case "text":
 				return ec.fieldContext_Post_text(ctx, field)
+			case "header":
+				return ec.fieldContext_Post_header(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Post", field.Name)
 		},
@@ -1230,7 +1308,7 @@ func (ec *executionContext) _Query_medicine(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Medicine(rctx, fc.Args["_id"].(string))
+		return ec.resolvers.Query().Medicine(rctx, fc.Args["_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1295,7 +1373,7 @@ func (ec *executionContext) _Query_post(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Post(rctx, fc.Args["_id"].(string))
+		return ec.resolvers.Query().Post(rctx, fc.Args["_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1326,6 +1404,8 @@ func (ec *executionContext) fieldContext_Query_post(ctx context.Context, field g
 				return ec.fieldContext_Post_image(ctx, field)
 			case "text":
 				return ec.fieldContext_Post_text(ctx, field)
+			case "header":
+				return ec.fieldContext_Post_header(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Post", field.Name)
 		},
@@ -1338,6 +1418,71 @@ func (ec *executionContext) fieldContext_Query_post(ctx context.Context, field g
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_post_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_filter_medicine(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_filter_medicine(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FilterMedicine(rctx, fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Medicine)
+	fc.Result = res
+	return ec.marshalNMedicine2ᚕᚖgdscᚗbackᚋgraphᚋmodelᚐMedicine(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_filter_medicine(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "_id":
+				return ec.fieldContext_Medicine__id(ctx, field)
+			case "name":
+				return ec.fieldContext_Medicine_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Medicine_description(ctx, field)
+			case "comments":
+				return ec.fieldContext_Medicine_comments(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Medicine", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_filter_medicine_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3272,7 +3417,7 @@ func (ec *executionContext) unmarshalInputNewComment(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("medicineId"))
-			it.MedicineID, err = ec.unmarshalNString2string(ctx, v)
+			it.MedicineID, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3289,21 +3434,13 @@ func (ec *executionContext) unmarshalInputNewMedicine(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_id", "name", "description"}
+	fieldsInOrder := [...]string{"name", "description"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_id"))
-			it.ID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "name":
 			var err error
 
@@ -3333,7 +3470,7 @@ func (ec *executionContext) unmarshalInputNewPost(ctx context.Context, obj inter
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"image", "text"}
+	fieldsInOrder := [...]string{"image", "text", "header"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3353,6 +3490,14 @@ func (ec *executionContext) unmarshalInputNewPost(ctx context.Context, obj inter
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			it.Text, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "header":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("header"))
+			it.Header, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3394,9 +3539,9 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "post":
+		case "medicine_id":
 
-			out.Values[i] = ec._Comment_post(ctx, field, obj)
+			out.Values[i] = ec._Comment_medicine_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -3501,6 +3646,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_createMedicine(ctx, field)
 			})
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3539,6 +3687,13 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 		case "text":
 
 			out.Values[i] = ec._Post_text(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "header":
+
+			out.Values[i] = ec._Post_header(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -3652,6 +3807,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_post(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "filter_medicine":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_filter_medicine(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4033,6 +4211,21 @@ func (ec *executionContext) marshalNComment2ᚖgdscᚗbackᚋgraphᚋmodelᚐCom
 		return graphql.Null
 	}
 	return ec._Comment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNMedicine2gdscᚗbackᚋgraphᚋmodelᚐMedicine(ctx context.Context, sel ast.SelectionSet, v model.Medicine) graphql.Marshaler {
