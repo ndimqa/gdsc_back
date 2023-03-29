@@ -20,6 +20,13 @@ type Medicine{
   comments: [Comment]
 }
 
+type Appointment{
+  _id: Int!
+  user_mail: String!
+  doctors_mail: String!
+  time: Timestamp!
+}
+
 type Query{
   Posts: [Post]!
   Medicines: [Medicine]!
@@ -46,8 +53,17 @@ input NewMedicine{
   description: String!
 }
 
+input NewAppointment{
+  doctors_mail: String!
+  user_mail: String!
+  time: Timestamp!
+}
+
 type Mutation{
   createPost(input: NewPost!): Post!
   createComment(input: NewComment!): Comment!
   createMedicine(input: NewMedicine!): Medicine!
+  createAppointment(input: NewAppointment!): Appointment!
 }
+
+scalar Timestamp

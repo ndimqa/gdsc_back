@@ -2,6 +2,13 @@
 
 package model
 
+type Appointment struct {
+	ID          int    `json:"_id"`
+	UserMail    string `json:"user_mail"`
+	DoctorsMail string `json:"doctors_mail"`
+	Time        string `json:"time"`
+}
+
 type Comment struct {
 	ID         int    `json:"_id"`
 	Text       string `json:"text"`
@@ -11,8 +18,15 @@ type Comment struct {
 type Medicine struct {
 	ID          int        `json:"_id"`
 	Name        string     `json:"name"`
+	RusName     string     `json:"rus_name"`
 	Description string     `json:"description"`
 	Comments    []*Comment `json:"comments,omitempty"`
+}
+
+type NewAppointment struct {
+	DoctorsMail string `json:"doctors_mail"`
+	UserMail    string `json:"user_mail"`
+	Time        string `json:"time"`
 }
 
 type NewComment struct {
@@ -22,6 +36,7 @@ type NewComment struct {
 
 type NewMedicine struct {
 	Name        string `json:"name"`
+	RusName     string `json:"rus_name"`
 	Description string `json:"description"`
 }
 

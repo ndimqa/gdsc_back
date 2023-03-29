@@ -13,6 +13,7 @@ services:
       - 5432:5432
     volumes:
       - /opt/homebrew/var/postgres/data
+      #If you are on windows or linux db:/var/lib/postgresql/data
 
 volumes:
   db:

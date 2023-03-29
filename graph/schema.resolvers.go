@@ -7,8 +7,10 @@ package graph
 import (
 	"context"
 	"gdsc.back/graph/common"
+	"gdsc.back/graph/mail_sender"
 	"gdsc.back/graph/model"
 	"log"
+	"strings"
 )
 
 // CreatePost is the resolver for the createPost field.
@@ -57,6 +59,7 @@ func (r *mutationResolver) CreateMedicine(ctx context.Context, input model.NewMe
 	medicine := &model.Medicine{
 		Name:        input.Name,
 		Description: input.Description,
+		RusName:     input.RusName,
 		Comments:    nil,
 	}
 	err := context_.Database.Create(&medicine).Error
@@ -66,6 +69,19 @@ func (r *mutationResolver) CreateMedicine(ctx context.Context, input model.NewMe
 	}
 	log.Println("Medicine created! ID: ", medicine.ID)
 	return medicine, nil
+}
+
+// CreateAppointment is the resolver for the createAppointment field.
+func (r *mutationResolver) CreateAppointment(ctx context.Context, input model.NewAppointment) (*model.Appointment, error) {
+	_time := string(input.Time)
+	// TODO: Create Link
+	mail_sender.Send("Here is Your Link To Your Appointment With Patient", input.DoctorsMail, _time)
+	mail_sender.Send("Here is Your Link To Your Appointment With Doctor", input.UserMail, _time)
+	return &model.Appointment{
+		UserMail:    input.UserMail,
+		DoctorsMail: input.DoctorsMail,
+		Time:        input.Time,
+	}, nil
 }
 
 // Posts is the resolver for the Posts field.
@@ -120,13 +136,24 @@ func (r *queryResolver) Post(ctx context.Context, id int) (*model.Post, error) {
 	return post, nil
 }
 
-// FilterMedicine is the resolver for the filter_medicine field.
-func (r *queryResolver) FilterMedicine(ctx context.Context, name string) ([]*model.Medicine, error) {
-	log.Println("Filter Post Request! substring: ", name)
+// FilterMedicineEng is the resolver for the filter_medicine_eng field.
+func (r *queryResolver) FilterMedicineEng(ctx context.Context, name string) ([]*model.Medicine, error) {
+	log.Println("Filter in Eng Post Request! substring: ", name)
 	context_ := common.GetContext(ctx)
 	var medicines []*model.Medicine
-	search := "%" + name + "%"
-	context_.Database.Where("name like ?", search).First(&medicines)
+	search := name + "%"
+	context_.Database.Where("name ilike ?", search).First(&medicines)
+	return medicines, nil
+}
+
+// FilterMedicineRus is the resolver for the filter_medicine_rus field.
+func (r *queryResolver) FilterMedicineRus(ctx context.Context, name string) ([]*model.Medicine, error) {
+	log.Println("Filter in Rus Post Request! substring: ", name)
+	context_ := common.GetContext(ctx)
+	var medicines []*model.Medicine
+	name = strings.Title(name)
+	search := name + "%"
+	context_.Database.Where("rus_name ilike ?", search).First(&medicines)
 	return medicines, nil
 }
 
