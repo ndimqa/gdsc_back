@@ -3,8 +3,13 @@ ___
 It is the App for solving is the process of rehabilitation after organ 
 transplantation.
 
+# Link For FrontEnd Part 
+---
+https://github.com/Zaykenov/solution_challenge
+
 # About
 ___
+
 * This is the Backend Part of the App, which includes GraphQL API, for quicker 
 and better requests.
 * In this repo you can find docker file for the database.
