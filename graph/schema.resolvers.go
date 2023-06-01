@@ -6,21 +6,34 @@ package graph
 
 import (
 	"context"
-	"gdsc.back/graph/common"
-	"gdsc.back/graph/mail_sender"
-	"gdsc.back/graph/model"
+	"fmt"
 	"log"
 	"strings"
+
+	"gdsc.back/google_services"
+	"gdsc.back/graph/common"
+	"gdsc.back/graph/model"
 )
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, input model.NewPost) (*model.Post, error) {
 	log.Println("Creating Post Request")
 	context_ := common.GetContext(ctx)
+	var category *model.Categories
+	var categories []*model.Categories
+	for i := 0; i <= len(input.Categories); i++ {
+		err := context_.Database.Where("id = ?", input.Categories[i]).Find(&category).Error
+		if err != nil {
+			log.Println("Error occured: ", err)
+		} else {
+			categories = append(categories, category)
+		}
+	}
 	post := &model.Post{
-		Text:   input.Text,
-		Image:  input.Image,
-		Header: input.Header,
+		Text:       input.Text,
+		Image:      input.Image,
+		Header:     input.Header,
+		Categories: categories,
 	}
 	err := context_.Database.Create(&post).Error
 	log.Println("Post created! ID: ", post.ID)
@@ -73,15 +86,38 @@ func (r *mutationResolver) CreateMedicine(ctx context.Context, input model.NewMe
 
 // CreateAppointment is the resolver for the createAppointment field.
 func (r *mutationResolver) CreateAppointment(ctx context.Context, input model.NewAppointment) (*model.Appointment, error) {
-	_time := string(input.Time)
-	// TODO: Create Link
-	mail_sender.Send("Here is Your Link To Your Appointment With Patient", input.DoctorsMail, _time)
-	mail_sender.Send("Here is Your Link To Your Appointment With Doctor", input.UserMail, _time)
-	return &model.Appointment{
-		UserMail:    input.UserMail,
-		DoctorsMail: input.DoctorsMail,
-		Time:        input.Time,
-	}, nil
+	var doctor *model.Doctor
+	context_ := common.GetContext(ctx)
+	err := context_.Database.Where("email = ?", input.DoctorsMail).Find(&doctor).Error
+	if err != nil {
+		log.Println("Error occured: ", err)
+		return nil, err
+	}
+	appointment := &model.Appointment{
+		UserMail:     input.UserMail,
+		DoctorsMail:  input.DoctorsMail,
+		DayMonthYear: input.DayMonthYear,
+		Time:         input.Time,
+		DoctorID:     doctor.ID,
+	}
+	google_services.CreateAppointment(appointment)
+	err1 := context_.Database.Create(&appointment).Error
+	log.Println("Appointment created! ID: ", appointment.ID)
+	if err != nil {
+		log.Println("Error occured: ", err)
+		return nil, err1
+	}
+	return appointment, nil
+}
+
+// CreateMetric is the resolver for the createMetric field.
+func (r *mutationResolver) CreateMetric(ctx context.Context, input model.NewMetric) (*model.Metric, error) {
+	panic(fmt.Errorf("not implemented: CreateMetric - createMetric"))
+}
+
+// CreatePostComment is the resolver for the createPostComment field.
+func (r *mutationResolver) CreatePostComment(ctx context.Context, input model.NewPostComment) (*model.PostComment, error) {
+	panic(fmt.Errorf("not implemented: CreatePostComment - createPostComment"))
 }
 
 // Posts is the resolver for the Posts field.
@@ -101,13 +137,26 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
 func (r *queryResolver) Medicines(ctx context.Context) ([]*model.Medicine, error) {
 	log.Println("Get Medicines Request")
 	context_ := common.GetContext(ctx)
-	var posts []*model.Medicine
-	err := context_.Database.Find(&posts).Error
+	var medicines []*model.Medicine
+	err := context_.Database.Find(&medicines).Error
 	if err != nil {
 		log.Println("Error occured: ", err)
 		return nil, err
 	}
-	return posts, nil
+	return medicines, nil
+}
+
+// Doctors is the resolver for the Doctors field.
+func (r *queryResolver) Doctors(ctx context.Context) ([]*model.Doctor, error) {
+	log.Println("Get Doctors Request")
+	context_ := common.GetContext(ctx)
+	var doctors []*model.Doctor
+	err := context_.Database.Find(&doctors).Error
+	if err != nil {
+		log.Println("Error occured: ", err)
+		return nil, err
+	}
+	return doctors, nil
 }
 
 // Medicine is the resolver for the medicine field.
@@ -136,6 +185,20 @@ func (r *queryResolver) Post(ctx context.Context, id int) (*model.Post, error) {
 	return post, nil
 }
 
+// FilterPostsCategory is the resolver for the filter_posts_category field.
+func (r *queryResolver) FilterPostsCategory(ctx context.Context, category []*int) ([]*model.Post, error) {
+	log.Println("Filter Posts for category id: ", category)
+	context_ := common.GetContext(ctx)
+	var pre_result []*model.Post
+	var result []*model.Post
+	for i := 0; i > len(category); i++ {
+		context_.Database.Raw(
+			"SELECT image, header, c.name, time_to_read FROM posts JOIN post_categories pc on posts.id = pc.post_id JOIN categories c on c.id = pc.categories_id WHERE categories_id = ?;", category[i]).Scan(&pre_result)
+		result = append(result, pre_result...)
+	}
+	return result, nil
+}
+
 // FilterMedicineEng is the resolver for the filter_medicine_eng field.
 func (r *queryResolver) FilterMedicineEng(ctx context.Context, name string) ([]*model.Medicine, error) {
 	log.Println("Filter in Eng Post Request! substring: ", name)
@@ -155,6 +218,29 @@ func (r *queryResolver) FilterMedicineRus(ctx context.Context, name string) ([]*
 	search := name + "%"
 	context_.Database.Where("rus_name ilike ?", search).First(&medicines)
 	return medicines, nil
+}
+
+// CreateDoc is the resolver for the create_doc field.
+func (r *queryResolver) CreateDoc(ctx context.Context, mail string) (string, error) {
+	res := google_services.CreateSpreadSheet(mail)
+	return res, nil
+}
+
+// FindReservedTimeSlots is the resolver for the find_reserved_time_slots field.
+func (r *queryResolver) FindReservedTimeSlots(ctx context.Context, doctorsMail string, dayMonthYear string) ([]*model.Appointment, error) {
+	log.Println("Finding Reserved times Request")
+	context_ := common.GetContext(ctx)
+	var appointment []*model.Appointment
+	var doctor *model.Doctor
+	context_.Database.Where("mail = ?", doctorsMail).First(&doctor)
+	context_.Database.Where("day_month_year = ? AND doctor_id = ?", dayMonthYear, doctor.ID).Find(&appointment)
+	return appointment, nil
+}
+
+// SetMetric is the resolver for the set_metric field.
+func (r *queryResolver) SetMetric(ctx context.Context, metric model.NewMetric, docName string) (bool, error) {
+	res := google_services.SetMetricToSpreadSheet(docName, &metric)
+	return res, nil
 }
 
 // Mutation returns MutationResolver implementation.

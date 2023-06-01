@@ -3,16 +3,33 @@
 package model
 
 type Appointment struct {
-	ID          int    `json:"_id"`
-	UserMail    string `json:"user_mail"`
-	DoctorsMail string `json:"doctors_mail"`
-	Time        string `json:"time"`
+	ID           int    `json:"_id"`
+	UserMail     string `json:"user_mail"`
+	DoctorsMail  string `json:"doctors_mail"`
+	DayMonthYear string `json:"day_month_year"`
+	Time         string `json:"time"`
+	EndTime      string `json:"end_time"`
+	DoctorID     int    `json:"doctor_id"`
+}
+
+type Categories struct {
+	ID   int    `json:"_id"`
+	Name string `json:"name"`
 }
 
 type Comment struct {
 	ID         int    `json:"_id"`
 	Text       string `json:"text"`
 	MedicineID int    `json:"medicine_id"`
+}
+
+type Doctor struct {
+	ID           int            `json:"_id"`
+	Name         string         `json:"name"`
+	Description  *string        `json:"description,omitempty"`
+	Image        *string        `json:"image,omitempty"`
+	Mail         string         `json:"mail"`
+	Appointments []*Appointment `json:"appointments"`
 }
 
 type Medicine struct {
@@ -23,10 +40,22 @@ type Medicine struct {
 	Comments    []*Comment `json:"comments,omitempty"`
 }
 
+type Metric struct {
+	ID          int      `json:"_id"`
+	Weight      *float64 `json:"weight,omitempty"`
+	Bpm         *int     `json:"bpm,omitempty"`
+	Saturation  *float64 `json:"saturation,omitempty"`
+	Temperature *float64 `json:"temperature,omitempty"`
+	Pressure    *string  `json:"pressure,omitempty"`
+	Date        *string  `json:"date,omitempty"`
+}
+
 type NewAppointment struct {
-	DoctorsMail string `json:"doctors_mail"`
-	UserMail    string `json:"user_mail"`
-	Time        string `json:"time"`
+	DoctorsMail  string `json:"doctors_mail"`
+	UserMail     string `json:"user_mail"`
+	DayMonthYear string `json:"day_month_year"`
+	Time         string `json:"time"`
+	EndTime      string `json:"end_time"`
 }
 
 type NewComment struct {
@@ -40,15 +69,41 @@ type NewMedicine struct {
 	Description string `json:"description"`
 }
 
+type NewMetric struct {
+	Weight      *float64 `json:"weight,omitempty"`
+	Bpm         *float64 `json:"bpm,omitempty"`
+	Saturation  *float64 `json:"saturation,omitempty"`
+	Temperature *float64 `json:"temperature,omitempty"`
+	Pressure    *string  `json:"pressure,omitempty"`
+	Date        *string  `json:"date,omitempty"`
+	Doc         *string  `json:"doc,omitempty"`
+}
+
 type NewPost struct {
-	Image  string `json:"image"`
+	Image      string `json:"image"`
+	Text       string `json:"text"`
+	Header     string `json:"header"`
+	TimeToRead int    `json:"time_to_read"`
+	Categories []*int `json:"categories"`
+}
+
+type NewPostComment struct {
 	Text   string `json:"text"`
-	Header string `json:"header"`
+	PostID int    `json:"postId"`
 }
 
 type Post struct {
+	ID         int            `json:"_id"`
+	Image      string         `json:"image"`
+	Text       string         `json:"text"`
+	Header     string         `json:"header"`
+	TimeToRead int            `json:"time_to_read"`
+	Categories []*Categories  `gorm:"many2many:post_categories;"`
+	Comments   []*PostComment `json:"comments,omitempty"`
+}
+
+type PostComment struct {
 	ID     int    `json:"_id"`
-	Image  string `json:"image"`
 	Text   string `json:"text"`
-	Header string `json:"header"`
+	PostID int    `json:"post_id"`
 }

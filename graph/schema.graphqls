@@ -5,11 +5,45 @@ type Comment{
   medicine_id: Int!
 }
 
+type PostComment{
+  _id: Int!
+  text: String!
+  post_id: Int!
+}
+
+type Doctor{
+  _id: Int!
+  name: String!
+  description: String
+  image: String
+  mail: String!
+  appointments: [Appointment]!
+}
+
+type Metric{
+  _id: Int!
+  weight: Float
+  bpm: Int
+  saturation: Float
+  temperature: Float
+  pressure: String
+  date: Timestamp
+}
+
+type Categories{
+  _id: Int!
+  name: String!
+}
+
+
 type Post{
   _id: Int!
   image: String!
   text: String!
   header: String!
+  time_to_read: Int!
+  categories: [Categories]
+  comments: [PostComment]
 }
 
 type Medicine{
@@ -24,27 +58,42 @@ type Appointment{
   _id: Int!
   user_mail: String!
   doctors_mail: String!
-  time: Timestamp!
+  day_month_year: String!
+  time: String!
+  end_time: String!
+  doctor_id: Int!
 }
 
 type Query{
   Posts: [Post]!
   Medicines: [Medicine]!
+  Doctors: [Doctor]!
   medicine(_id: Int!): Medicine!
   post(_id: Int!): Post!
+  filter_posts_category(category: [Int]!): [Post]!
   filter_medicine_eng(name: String!): [Medicine]!
   filter_medicine_rus(name: String!): [Medicine]!
+  create_doc(mail: String!): String!
+  find_reserved_time_slots(doctors_mail: String!, day_month_year: String!): [Appointment]!
+  set_metric(metric: NewMetric!, doc_name: String!): Boolean!
 }
 
 input NewPost{
   image: String!
   text: String!
   header: String!
+  time_to_read: Int!
+  categories: [Int]!
 }
 
 input NewComment{
   text: String!
   medicineId: Int!
+}
+
+input NewPostComment{
+  text: String!
+  postId: Int!
 }
 
 input NewMedicine{
@@ -53,10 +102,22 @@ input NewMedicine{
   description: String!
 }
 
+input NewMetric{
+  weight: Float
+  bpm: Float
+  saturation: Float
+  temperature: Float
+  pressure: String
+  date: Timestamp
+  doc: String
+}
+
 input NewAppointment{
   doctors_mail: String!
   user_mail: String!
-  time: Timestamp!
+  day_month_year: String!
+  time: String!
+  end_time: String!
 }
 
 type Mutation{
@@ -64,6 +125,8 @@ type Mutation{
   createComment(input: NewComment!): Comment!
   createMedicine(input: NewMedicine!): Medicine!
   createAppointment(input: NewAppointment!): Appointment!
+  createMetric(input: NewMetric!): Metric!
+  createPostComment(input: NewPostComment!): PostComment!
 }
 
 scalar Timestamp
