@@ -15,8 +15,7 @@ The mobile application that we propose offers the users an ability to: <br>
 
 ## Demo Video
 ___
-![The San Juan Mountains are beautiful!](/assets/images/san-juan-mountains.jpg "San Juan Mountains")
-
+![Copy of GDSC_ Presentation Slides Template.pptx.png](ReadMeFiles%2FCopy%20of%20GDSC_%20Presentation%20Slides%20Template.pptx.png)
 > Youtube Video Link: https://www.youtube.com/watch?v=g_z2eqk4_u8
 
 ## Table of Content
@@ -26,7 +25,6 @@ ___
     <li><a href="#un-sustainable-development-goals-and-targets">UN Sustainable Development Goals And Targets</a></li>
     <li><a href="#core-functionalities">Core Functionalities</a></li>
     <li><a href="#distribution">Distribution</a></li>
-    <li><a href="#license">License</a></li>
   </ol>
 
 ## Technologies
@@ -71,6 +69,7 @@ ___
   <img height="400" src="ReadMeFiles/PillTrackerChange.png" alt="Add Pill" title="Ad Pill" />
 	<img height="400" src="ReadMeFiles/AddPill.png" alt="Add Pill" title="Ad Pill" />
 </div>
+Pill tracker to for necessary medicaments to stabilize immune system
 
 ### Activity/Medical Indicators Tracker
 <div align="center">
@@ -107,6 +106,7 @@ ___
 	<img height="400" src="ReadMeFiles/Appointment page.png" alt="Add Pill" title="Ad Pill" />
   <img height="400" src="ReadMeFiles/Map.png" alt="Tracker" title="Tracker" />
 </div>
+Safe space for users is created by providing reliable information on physical activity accredited by European Transplant Sports Symposium and mental health related articles from trusted sources. Simple doctor appointment form using Google Meet and Google Sheets. Transplant community events and links to local community chats
 
 ### Medical articles digest
 <div align="center">
@@ -114,7 +114,7 @@ ___
 </div>
 
 ### Data collection
-
+Data gathering of medical indicators like blood pressure, blood oxygen level and heartbeat. It could be used for anomaly detection.
 
 ## Distribution
 ___
