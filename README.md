@@ -128,15 +128,31 @@ ___
 git clone https://github.com/ndimqa/gdsc_back.git 
 ```
 3. Enter to your repo
-4. Now we need to compile packages and dependecies
+4. Enter in Postgresql
+```
+psql postgres
+```
+5. Create user and database
+```
+CREATE USER pg WITH PASSWORD 'pass';
+\c postgres pg
+CREATE DATABASE gdsc;
+\c gdsc pg
+```
+After that you can quit psql terminal and return to regular terminal
+6. Restore Database
+```
+psql -U pg -d gdsc -f gdsc.sql
+```
+7. Now we need to compile packages and dependecies
 ```
 go build
 ```
-4. After that start Docker
+6. After that start Docker
 ```
 docker compose up -d
 ``` 
-5. Now you can start the App
+7. Now you can start the App
 ```
 go run server.go 
 ```
