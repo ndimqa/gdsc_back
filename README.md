@@ -3,7 +3,7 @@ ___
 ReVita contributes to preventing deaths from post-transplantation hardships. Moreover, our app contributes to achieving universal health coverage, automates and enhances many medical procedures such as patient health tracking, reviewing medical history and promotes physical and mental well-being.
 ## Link For FrontEnd Part 
 ___ 
-https://github.com/Zaykenov/solution_challenge
+https://github.com/ndimqa/gdsc_front
 
 ## Overview
 ___
