@@ -36,27 +36,27 @@ func CreateAppointment(appointment *model.Appointment) bool {
 	config, err := google.ConfigFromJSON(b, calendar.CalendarScope)
 	fmt.Println(config.Scopes)
 	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
+		fmt.Println("Unable to parse client secret file to config: %v", err)
 	}
 	fmt.Println("4")
 	client := getClient(config, "token.json")
 	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		log.Fatalf("Unable to retrieve Calendar client: %v", err)
+		fmt.Println("Unable to retrieve Calendar client: %v", err)
 	}
 	date := appointment.DayMonthYear + "T" + appointment.Time
 	end_date := appointment.DayMonthYear + "T" + appointment.EndTime
 	event := &calendar.Event{
 		Summary:     "Appointment",
 		Location:    "",
-		Description: "",
+		Description: "This is the test description",
 		Start: &calendar.EventDateTime{
 			DateTime: date,
-			TimeZone: "Kazakhstan/Almaty",
+			TimeZone: "Asia/Almaty",
 		},
 		End: &calendar.EventDateTime{
 			DateTime: end_date,
-			TimeZone: "Kazakhstan/Almaty",
+			TimeZone: "Asia/Almaty",
 		},
 		Recurrence: []string{},
 		Attendees: []*calendar.EventAttendee{
@@ -74,9 +74,9 @@ func CreateAppointment(appointment *model.Appointment) bool {
 
 	event, err = srv.Events.Insert(calendarId, event).Do()
 	if err != nil {
-		log.Fatalf("Unable to create event. %v\n", err)
+		fmt.Println("Unable to create event. %v\n", err)
 	}
-	fmt.Printf("Event created: %s\n", event.HtmlLink)
+	//fmt.Println("Event created: %s\n", event.HtmlLink)
 
 	return true
 }

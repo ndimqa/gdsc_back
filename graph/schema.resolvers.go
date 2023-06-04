@@ -88,7 +88,7 @@ func (r *mutationResolver) CreateMedicine(ctx context.Context, input model.NewMe
 func (r *mutationResolver) CreateAppointment(ctx context.Context, input model.NewAppointment) (*model.Appointment, error) {
 	var doctor *model.Doctor
 	context_ := common.GetContext(ctx)
-	err := context_.Database.Where("email = ?", input.DoctorsMail).Find(&doctor).Error
+	err := context_.Database.Where("mail = ?", input.DoctorsMail).Find(&doctor).Error
 	if err != nil {
 		log.Println("Error occured: ", err)
 		return nil, err
@@ -99,14 +99,16 @@ func (r *mutationResolver) CreateAppointment(ctx context.Context, input model.Ne
 		DayMonthYear: input.DayMonthYear,
 		Time:         input.Time,
 		DoctorID:     doctor.ID,
+		EndTime:      input.EndTime,
 	}
-	google_services.CreateAppointment(appointment)
 	err1 := context_.Database.Create(&appointment).Error
 	log.Println("Appointment created! ID: ", appointment.ID)
 	if err != nil {
 		log.Println("Error occured: ", err)
 		return nil, err1
 	}
+	q := google_services.CreateAppointment(appointment)
+	println(q)
 	return appointment, nil
 }
 
@@ -125,7 +127,13 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
 	log.Println("Get Posts Request")
 	context_ := common.GetContext(ctx)
 	var posts []*model.Post
+	var categories []*model.Categories
 	err := context_.Database.Find(&posts).Error
+	log.Println("Get Posts Request")
+	for i := 0; i < len(posts); i++ {
+		context_.Database.Raw("SELECT * from categories join post_categories pc on categories.id = pc.categories_id where post_id = ?", posts[i].ID).Scan(&categories)
+		posts[i].Categories = categories
+	}
 	if err != nil {
 		log.Println("Error occured: ", err)
 		return nil, err

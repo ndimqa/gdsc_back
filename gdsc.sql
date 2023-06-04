@@ -419,7 +419,18 @@ ALTER TABLE ONLY public.time_slots ALTER COLUMN id SET DEFAULT nextval('public.t
 --
 
 COPY public.appointments (id, user_mail, doctors_mail, "time", day_month_year, doctor_id, end_time) FROM stdin;
-1	dinmukhamednuran@gmail.com	test@gmail.com	17:00:00-07:00	2023-06-28	1	18:00:00-07:00
+2	kolbar33@gmail.com	a.serikbayevv@gmail.com	12:00:00-07:00	2023-06-03	1	13:00:00-07:00
+1	dinmukhamednuran@gmail.com	a.serikbayevv@gmail.com	17:00:00-07:00	2023-06-28	1	18:00:00-07:00
+7	kolbar33@gmail.com	a.serikbayevv@gmail.com	13:00:00+06:00	2023-10-10	1	14:00:00+06:00
+8	kolbar33@gmail.com	a.serikbayevv@gmail.com	13:00:00+06:00	2023-06-06	1	14:00:00+06:00
+9	kolbar33@gmail.com	a.serikbayevv@gmail.com	13:00:00+06:00	2023-06-06	1	14:00:00+06:00
+10	kolbar33@gmail.com	a.serikbayevv@gmail.com	03:00 PM+06:00	2023-06-03+06:00	1	04:00+06:00
+11	kolbar33@gmail.com	a.serikbayevv@gmail.com	01:00 PM:00+06:00	2023-06-03	1	02:00:00+06:00
+12	kolbar33@gmail.com	a.serikbayevv@gmail.com	03:00 PM:00+06:00	2023-06-03	1	04:00:00+06:00
+13	kolbar33@gmail.com	a.serikbayevv@gmail.com	09:00 AM:00+06:00	2023-06-04	1	10:00:00+06:00
+14	kolbar33@gmail.com	a.serikbayevv@gmail.com	10:00:00+06:00	2023-06-05	1	11:00:00+06:00
+15	kolbar33@gmail.com	a.serikbayevv@gmail.com	11:00:00+06:00	2023-06-05	1	12:00:00+06:00
+16	kolbar33@gmail.com	a.serikbayevv@gmail.com	11:00:00+06:00	2023-06-06	1	12:00:00+06:00
 \.
 
 
@@ -449,7 +460,7 @@ COPY public.comments (id, text, medicine_id) FROM stdin;
 --
 
 COPY public.doctors (id, name, description, image, mail) FROM stdin;
-1	Doc.Oc	test	https://drive.google.com/file/d/18qtQkM-0F1YZIBtxMhiZQqmahxZ-aTfK/view?usp=sharing	test@gmail.com
+1	Octavius	test	https://drive.google.com/uc?export=view&id=18qtQkM-0F1YZIBtxMhiZQqmahxZ-aTfK	a.serikbayevv@gmail.com
 \.
 
 
@@ -492,7 +503,7 @@ COPY public.post_comments (id, text, post_id) FROM stdin;
 --
 
 COPY public.posts (id, image, text, header, time_to_read) FROM stdin;
-1	https://drive.google.com/file/d/18TXF9wl07RBRN6HcXDsXlEZsZMZktOrh/view?usp=sharing	When most people think about getting an organ transplant, they focus on the obvious physical aspects: the illness, the operation, and the healing. They're less likely to think about the emotional impact. But that can be profound too, both for you and the people around you.\nNearly all people who receive a transplant, experts say, feel elated and experience a sense of relief and hope after a surgery that goes well. But with time, that initial optimism may be tinged with other feelings. You may start to worry about your condition coming back. You may be afraid of organ rejection. Or you may fixate on the uncertainty of the future.\nIt's perfectly natural to have these feelings. But if these worries take over your life, you need to do something about it.\nGuilt After an Organ Transplant\nGuilt is a common reaction people have after a transplant. Patients often report thinking a lot 	Coping Emotionally After an Organ Transplant	10
+1	https://drive.google.com/uc?export=view&id=13L5vUbchBJ21--KSe5IlknLJE2Nxw5MQ	When most people think about getting an organ transplant, they focus on the obvious physical aspects: the illness, the operation, and the healing. They're less likely to think about the emotional impact. But that can be profound too, both for you and the people around you.\nNearly all people who receive a transplant, experts say, feel elated and experience a sense of relief and hope after a surgery that goes well. But with time, that initial optimism may be tinged with other feelings. You may start to worry about your condition coming back. You may be afraid of organ rejection. Or you may fixate on the uncertainty of the future.\nIt's perfectly natural to have these feelings. But if these worries take over your life, you need to do something about it.\nGuilt After an Organ Transplant\nGuilt is a common reaction people have after a transplant. Patients often report thinking a lot 	Coping Emotionally After an Organ Transplant	10
 \.
 
 
@@ -508,7 +519,7 @@ COPY public.time_slots (id, "time", date, mail) FROM stdin;
 -- Name: appointments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: pg
 --
 
-SELECT pg_catalog.setval('public.appointments_id_seq', 1, false);
+SELECT pg_catalog.setval('public.appointments_id_seq', 16, true);
 
 
 --

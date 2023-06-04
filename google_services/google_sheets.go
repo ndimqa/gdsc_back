@@ -14,20 +14,20 @@ func CreateSpreadSheet(email string) string {
 	ctx := context.Background()
 	b, err := os.ReadFile("google_services/credentials.json")
 	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		log.Println("Unable to read client secret file: %v", err)
 	}
 	log.Println("1")
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
 	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
+		log.Println("Unable to parse client secret file to config: %v", err)
 	}
 	log.Println("2")
 	client := getClient(config, "sheet_token.json")
 
 	srv, err := sheets.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		log.Fatalf("Unable to retrieve Sheets client: %v", err)
+		log.Println("Unable to retrieve Sheets client: %v", err)
 	}
 	log.Println("3")
 	spreadsheet := &sheets.Spreadsheet{
@@ -48,7 +48,7 @@ func CreateSpreadSheet(email string) string {
 	log.Println("7")
 	response2, err := srv.Spreadsheets.Values.Append(res.SpreadsheetId, res.Properties.Title, row).ValueInputOption("USER_ENTERED").InsertDataOption("INSERT_ROWS").Context(ctx).Do()
 	if err != nil || response2.HTTPStatusCode != 200 {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	log.Println("8")
 	return res.SpreadsheetId
@@ -58,24 +58,24 @@ func SetMetricToSpreadSheet(SpreadsheetId string, metric *model.NewMetric) bool 
 	ctx := context.Background()
 	b, err := os.ReadFile("google_services/credentials.json")
 	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		log.Println("Unable to read client secret file: %v", err)
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
 	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
+		log.Println("Unable to parse client secret file to config: %v", err)
 	}
 	client := getClient(config, "sheet_token.json")
 
 	srv, err := sheets.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		log.Fatalf("Unable to retrieve Sheets client: %v", err)
+		log.Println("Unable to retrieve Sheets client: %v", err)
 	}
 
 	response1, err := srv.Spreadsheets.Get(SpreadsheetId).Fields("sheets(properties(sheetId,title))").Do()
 	if err != nil || response1.HTTPStatusCode != 200 {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		log.Println("Unable to read client secret file: %v", err)
 	}
 
 	sheetName := ""
@@ -94,7 +94,7 @@ func SetMetricToSpreadSheet(SpreadsheetId string, metric *model.NewMetric) bool 
 
 	response2, err := srv.Spreadsheets.Values.Append(SpreadsheetId, sheetName, row).ValueInputOption("USER_ENTERED").InsertDataOption("INSERT_ROWS").Context(ctx).Do()
 	if err != nil || response2.HTTPStatusCode != 200 {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		log.Println("Unable to read client secret file: %v", err)
 	}
 	return true
 }
